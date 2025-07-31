@@ -1,0 +1,49 @@
+{
+  "name": "lg-query",
+  "version": "1.0.0",
+  "description": "A strongly-typed TypeScript query builder for Labra Go GraphQL API with support for CRUD operations, filtering, pagination, and nested relationships.",
+  
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "homepage": "https://github.com/GoLabra/LGQuery#readme",
+  "keywords": [
+	"graphql",
+	"query",
+	"builder",
+	"query builder",
+	"labra",
+	"labrago"
+  ],
+   "files": ["dist"],
+  "scripts": {
+	"build": "tsup",
+	"example": "npx ts-node example/index.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GoLabra/LGQuery.git"
+  },
+
+  "author": "",
+  "license": "MIT",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/GoLabra/LGQuery/issues"
+  },
+
+  "dependencies": {
+	"pluralize": "^8.0.0",
+	"change-case": "^5.4.4",
+	"gql-query-builder": "^3.8.0"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.38.0",
+    "@typescript-eslint/parser": "^8.38.0",
+	"@types/pluralize": "^0.0.33",
+    "eslint": "^9.32.0",
+    "tsup": "^8.5.0",
+    "typescript": "^5.8.3"
+  }
+}
