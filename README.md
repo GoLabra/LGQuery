@@ -30,7 +30,7 @@ To get the most out of **LGQuery**, we highly recommend generating your GraphQL 
 ```bash
 npm install lg-query
 or
-yarn install lg-query
+yarn add lg-query
 ```
 
 ## Usage
