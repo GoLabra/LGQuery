@@ -68,9 +68,15 @@ export class LGUpdate<T extends EntityBaseType> implements ILGQuery {
 
 		let whereType = (() => {
 			if(this.isMany()){
-				return `${pascalCase(this._field!)}WhereInput`;
+				return {
+					type: `${pascalCase(this._field!)}WhereInput`,
+					required: false,
+				};
 			}
-			return `${pascalCase(this._field!)}WhereUniqueInput`;
+			return {
+				type: `${pascalCase(this._field!)}WhereUniqueInput`,
+				required: true,
+			};
 		})();
 
 		const queryOptions = {
@@ -79,7 +85,7 @@ export class LGUpdate<T extends EntityBaseType> implements ILGQuery {
 			variables: {
 				...(this._filter && {
 					where: {
-						type: `${pascalCase(this._field)}WhereInput`,
+						...whereType,
 						value: this._filter?.getExpression(),
 					},
 				}),

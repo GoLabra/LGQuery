@@ -66,9 +66,15 @@ export class LGDelete<T extends EntityBaseType> implements ILGQuery {
 
 		let whereType = (() => {
 			if(this.isMany()){
-				return `${pascalCase(this._field!)}WhereInput`;
+				return {
+					type: `${pascalCase(this._field!)}WhereInput`,
+					required: false,
+				};
 			}
-			return `${pascalCase(this._field!)}WhereUniqueInput`;
+			return {
+				type: `${pascalCase(this._field!)}WhereUniqueInput`,
+				required: true,
+			};
 		})();
 
 		const queryOptions = {
@@ -77,7 +83,7 @@ export class LGDelete<T extends EntityBaseType> implements ILGQuery {
 			variables: {
 				...(this._filter && {
 					where: {
-						type: whereType,
+						...whereType,
 						value: this._filter?.getExpression(),
 					},
 				}),

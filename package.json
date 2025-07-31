@@ -1,6 +1,6 @@
 {
   "name": "lg-query",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A strongly-typed TypeScript query builder for Labra Go GraphQL API with support for CRUD operations, filtering, pagination, and nested relationships.",
   
   "main": "./dist/index.js",
