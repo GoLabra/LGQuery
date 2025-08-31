@@ -16,3 +16,15 @@ export type User = {
 	permissions?: Maybe<Permission[]>;
 	testProp: string;
 };
+
+export type EventRegistrations = {
+	id: string;
+};
+
+export type Event = {
+	id: string;
+	title: string;
+	description?: string;
+	registrations?: Maybe<EventRegistrations[]>;
+};
+

@@ -92,6 +92,10 @@ export class GplFilter<T extends EntityBaseType> {
 
 		return undefined;
 	}
+
+	public clone = (): GplFilter<T> => {
+		return new GplFilter<T>(this.key, this.operator, {...this.value ?? {}}, this.not, [...this.and ?? []], [...this.or ?? []]);
+	}
 }
 
 export class GplOrder<T> {
@@ -101,6 +105,10 @@ export class GplOrder<T> {
 	constructor(field: keyof T, ascending: boolean) {
 		this.field = field;
 		this.ascending = ascending;
+	}
+
+	public clone = (): GplOrder<T> => {
+		return new GplOrder<T>(this.field, this.ascending);
 	}
 }
 

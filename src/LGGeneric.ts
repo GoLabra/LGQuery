@@ -5,42 +5,42 @@ import IQueryBuilderOptions from "gql-query-builder/build/IQueryBuilderOptions";
 import Fields from "gql-query-builder/build/Fields";
 import * as gqlBuilder from 'gql-query-builder'
 import pluralize from "pluralize";
+import VariableOptions from "gql-query-builder/build/VariableOptions";
 
-export class LGCreate<T extends EntityBaseType> implements ILGQuery {
+export class LGGeneric<T extends EntityBaseType> implements ILGQuery {
 
 	public readonly isMutation = true;
+
 	private readonly _field: string;
 	private readonly _select: FieldRequest<T>[] = [];
-	private readonly _data: T | T[];
+	private readonly _filter?: VariableOptions;
 
-	private constructor(data: T | T[], operation: string, fields: FieldRequest<T>[]) {
-		this._data = data;
+	private constructor(operation: string, fields: FieldRequest<T>[], filter?: VariableOptions) {
 		this._field = operation;
 		this._select = fields;
+		this._filter = filter;
 	}
 
 	public getOperationName = (): string => {
-		if(Array.isArray(this._data)){
-			return `createMany${pascalCase(pluralize(this._field))}`;
-		}
-		return `create${pascalCase(this._field)}`;
+		return this._field;
 	}
 
+
 	public select = (...fields: FieldRequest<T>[]) => {
-		return new LGCreate<T>(this._data, this._field, [...this._select, ...fields]);
+		return new LGGeneric<T>(this._field, [...this._select, ...fields]);
+	};
+
+	public where = (filter: VariableOptions) => {
+		return new LGGeneric<T>(this._field, this._select, filter);
 	};
 
 	public include<K extends keyof T>(
 		key: K extends keyof T ? T[K] extends Maybe<object> ? K : never : never,
-		builder: (query: LGSelectInclude<NonNullable<Unarray<T[ObjectKeys<T>]>>>) => LGSelectInclude<NonNullable<Unarray<T[ObjectKeys<T>]>>>
-	): LGCreate<T> {
-		const nestedFields = builder(LGSelectInclude.from<NonNullable<Unarray<T[ObjectKeys<T>]>>>(key as string));
-		return new LGCreate(this._data, this._field, [...this._select, nestedFields]);
+		builder: (query: LGSelectInclude<NonNullable<Unarray<T[K]>>>) => LGSelectInclude<NonNullable<Unarray<T[K]>>>
+	): LGGeneric<T> {
+		const nestedFields = builder(LGSelectInclude.from<NonNullable<Unarray<T[K]>>>(key as string));
+		return new LGGeneric(this._field, [...this._select, nestedFields], this._filter);
 	}
-
-	public where = (filter: GplFilter<T>) => {
-		return new LGCreate<T>(this._data, this._field, this._select);
-	};
 		
 	public buildOptions = (): IQueryBuilderOptions => {
 
@@ -57,18 +57,10 @@ export class LGCreate<T extends EntityBaseType> implements ILGQuery {
 			return acc;
 		}, [] as Fields);
 
-		
 		const queryOptions = {
 			operation,
 			fields,
-			variables: {
-				data: {
-					type: `Create${pascalCase(this._field)}Input`,
-					required: true,
-					value: this._data,
-					list: Array.isArray(this._data) ? [true] : undefined
-				}
-			}
+			variables: this._filter
 		};
 
 		return queryOptions;
@@ -79,8 +71,8 @@ export class LGCreate<T extends EntityBaseType> implements ILGQuery {
 		return gqlBuilder.query(queryOptions);
 	}
 
-	public clone = (): LGCreate<T> => {
-		return new LGCreate<T>({...this._data ?? {}}, this._field, [...this._select]);
+	public clone = (): LGGeneric<T> => {
+		return new LGGeneric<T>(this._field, [...this._select], {...this._filter ?? {}});
 	}
 
 	public getResultData = (response: any) => {
@@ -92,7 +84,7 @@ export class LGCreate<T extends EntityBaseType> implements ILGQuery {
 		return response[fieldName];
 	}
 
-	public static from = <T extends EntityBaseType = any>(entityName: string, data: T | T[]) => {
-		return new LGCreate<T>(data, entityName, []);
+	public static from = <T extends EntityBaseType = any>(entityName: string) => {
+		return new LGGeneric<T>(entityName, []);
 	};
 }

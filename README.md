@@ -51,6 +51,17 @@ const getQuery = LGQuery
 console.log('GET Query:', getQuery.build());
 ```
 
+#### GET Connection Query
+```ts
+const getQuery = LGQuery
+  .fromConnection<User>('user')
+  .orderByAscending('name')
+  .select('id', 'name')
+  .include('permissions', q => q.select('id', 'name'));
+
+console.log('GET Query:', getQuery.build());
+```
+
 #### CREATE Query
 ```ts
 const createQuery = LGQuery
@@ -79,6 +90,27 @@ const deleteQuery = LGQuery
 
 console.log('DELETE Query:', deleteQuery.build());
 ```
+
+#### GENERIC Query
+```ts
+const genericQuery = LGQuery
+  .generic<Event>('events')
+  .select('id', 'title', 'description')
+  .include('registrations', q => q.select('id'))
+  .where({
+    start: {
+      type: 'DateTime',
+      required: true,
+      value: "2025-09-01T00:00:00.000"
+    },
+    end: {
+      type: 'DateTime',
+      required: true,
+      value: "2025-09-30T23:59:59.999"
+    }
+  });
+
+console.log('GENERIC Query:', genericQuery.build());
 
 # Build the library
 ```bash

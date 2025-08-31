@@ -2,8 +2,9 @@ import * as gqlBuilder from 'gql-query-builder'
 import Fields from 'gql-query-builder/build/Fields';
 import IQueryBuilderOptions from 'gql-query-builder/build/IQueryBuilderOptions';
 import pluralize from "pluralize";
-import { EntityBaseType, FieldRequest, GplFilter, GplOrder, ILGQuery, ObjectKeys, Unarray } from './types';
+import { EntityBaseType, FieldRequest, GplFilter, GplOrder, ILGQuery, Maybe, ObjectKeys, Unarray } from './types';
 import { LGSelectInclude } from './LGSelectInclude';
+import { pascalCase } from 'change-case';
 
 export class LGConnectionQuery<T extends EntityBaseType> implements ILGQuery {
 
@@ -32,16 +33,16 @@ export class LGConnectionQuery<T extends EntityBaseType> implements ILGQuery {
 	};
 
 	public include<K extends keyof T>(
-		key: K extends keyof T ? T[K] extends object ? K : never : never,
-		builder: (query: LGSelectInclude<Unarray<T[ObjectKeys<T>]>>) => LGSelectInclude<Unarray<T[ObjectKeys<T>]>>
+		key: K extends keyof T ? T[K] extends Maybe<object> ? K : never : never,
+		builder: (query: LGSelectInclude<NonNullable<Unarray<T[K]>>>) => LGSelectInclude<NonNullable<Unarray<T[K]>>>
 	): LGConnectionQuery<T> {
-		const nestedFields = builder(LGSelectInclude.from<Unarray<T[ObjectKeys<T>]>>(key as string));
-		return new LGConnectionQuery(this._field, [...this._select, nestedFields], this._filter, this._order);
+		const nestedFields = builder(LGSelectInclude.from<NonNullable<Unarray<T[K]>>>(key as string));
+		return new LGConnectionQuery(this._field, [...this._select, nestedFields], this._filter, this._order, this._skip, this._first, this._last);
 	}
 
 	public where = (filter: GplFilter<T>) => {
-		const whereInput = !!this._filter ? GplFilter.and(this._filter, filter) : filter;
-		return new LGConnectionQuery<T>(this._field, this._select, whereInput);
+		const whereInput = !!this._filter ? GplFilter.and(this._filter, filter) : filter
+		return new LGConnectionQuery<T>(this._field, this._select, whereInput, this._order, this._skip, this._first, this._last);
 	};
 
 	public orderByAscending = (field: keyof T) => {		
@@ -83,9 +84,41 @@ export class LGConnectionQuery<T extends EntityBaseType> implements ILGQuery {
 			return acc;
 		}, [] as Fields);
 
+		// compute filter
 		const queryOptions = {
 			operation,
-			fields
+			fields,
+			variables: {
+
+				...(this._filter && {
+					where: {
+						type: `${pascalCase(this._field)}WhereInput`,
+						value: this._filter?.getExpression(),
+					},
+				}),
+				
+				...(this._skip != null &&  {
+					skip: this._skip
+				}),
+
+				...(this._first != null &&  {
+					first: this._first
+				}),
+
+				...(this._last != null &&  {
+					skip: this._last
+				}),
+
+				... (this._order != null && {
+					orderBy: {
+						type: `${pascalCase(this._field)}Order`,
+						value: {
+							field: this._order.field,
+							direction: this._order.ascending ? 'ASC' : 'DESC'
+						}
+					}
+				})
+			}
 		};
 
 		return queryOptions;
@@ -94,6 +127,10 @@ export class LGConnectionQuery<T extends EntityBaseType> implements ILGQuery {
 	public build = (): { query: string, variables: Record<string, any> } => {
 		const queryOptions = this.buildOptions();
 		return gqlBuilder.query(queryOptions);
+	}
+
+	public clone = (): LGConnectionQuery<T> => {
+		return new LGConnectionQuery<T>(this._field, [...this._select], this._filter?.clone(), this._order?.clone(), this._skip, this._first, this._last);
 	}
 
 	public getResultData = (response: any) => {

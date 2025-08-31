@@ -10,6 +10,7 @@ import { LGUpdate } from './LGUpdate';
 import { LGCreate } from './LGCreate';
 import { pascalCase } from 'change-case';
 import { LGUpsert } from './LGUpsert';
+import { LGGeneric } from './LGGeneric';
 
 export class LGQuery<T extends EntityBaseType>  implements ILGQuery {
 	public readonly isMutation = false;
@@ -133,6 +134,10 @@ export class LGQuery<T extends EntityBaseType>  implements ILGQuery {
 		return gqlBuilder.query(queryOptions);
 	}
 
+	public clone = (): ILGQuery => {
+		return new LGQuery<T>(this._field, [...this._select], this._filter?.clone(), this._order?.clone(), this._skip, this._first, this._last);
+	}
+
 	public getResultData = (response: any) => {
 		if(!response){
 			return null;
@@ -164,6 +169,10 @@ export class LGQuery<T extends EntityBaseType>  implements ILGQuery {
 	
 	public static deleteFrom = <T extends EntityBaseType = any>(entityName: string) => {
 		return LGDelete.from<T>(entityName);
+	};
+
+	public static generic = <T extends EntityBaseType = any>(entityName: string) => {
+		return LGGeneric.from<T>(entityName);
 	};
 
 	public static merge = <T = any>(...queries: ILGQuery[]) => {

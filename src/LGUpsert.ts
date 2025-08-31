@@ -79,6 +79,10 @@ export class LGUpsert<T extends EntityBaseType> implements ILGQuery {
 		return gqlBuilder.query(queryOptions);
 	}
 
+	public clone = (): LGUpsert<T> => {
+		return new LGUpsert<T>({...this._data ?? {}}, this._field, [...this._select]);
+	}
+
 	public getResultData = (response: any) => {
 		if(!response){
 			return null;
